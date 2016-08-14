@@ -1,0 +1,61 @@
+{
+  "Parameters": {
+    "CfnEachS3Bucket": {
+      "Type": "String",
+      "Description": "S3 Bucket the Lambda code is contained in."
+    },
+    "CfnEachS3Key": {
+      "Type": "String",
+      "Description": "Path in the S3 bucket to the cfn_each.zip file.",
+      "Default": "cfn_each.zip"
+    }
+  },
+  "Resources": {
+    "CfnEachRole": {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Principal": {
+                "Service": [
+                  "lambda.amazonaws.com"
+                ]
+              },
+              "Action": [
+                "sts:AssumeRole"
+              ]
+            }
+          ]
+        },
+        "Path": "/",
+        "Policies": []
+      }
+    },
+    "CfnEach": {
+      "Type": "AWS::Lambda::Function",
+      "Properties": {
+        "Code": {
+          "S3Bucket": {
+            "Ref": "CfnEachS3Bucket"
+          },
+          "S3Key": {
+            "Ref": "CfnEachS3Key"
+          }
+        },
+        "Description": "An AWS Cloudformation Lambda backed Custom resource to allow you to iterate an array and inject each element into a string pattern",
+        "FunctionName": "cfn_each",
+        "Handler": "cfn_each.handler",
+        "Role": {
+          "Fn::GetAtt": [
+            "CfnEachRole",
+            "Arn"
+          ]
+        },
+        "Runtime": "python2.7"
+      }
+    }
+  }
+}
