@@ -11,6 +11,32 @@ You can build the package to be uploaded to AWS Lambda, by running:
 The `cfn_each.zip` file can then be uploaded to AWS Lambda as a
 [Deployment Package](http://docs.aws.amazon.com/lambda/latest/dg/lambda-python-how-to-create-deployment-package.html).
 
+### Deploying
+
+You can deploy the lambda function using the provided template in 
+`custom_cfneach.json`. The `CfnEachRole` has no policies attached as the
+resources performs only string operations and requires no permissions.
+It is recommended to use the template as a base, rather than deploying
+it as it.
+
+If you want to quickly deploy the function to try it out, you can run:
+
+    $ PROFILE=default REGION=eu-west-1 \
+        BUCKET=my-lambda-function-bucket \
+        make install
+
+using your profile as set in `~/.aws/credentials` in `$PROFILE`, and the
+bucket you wish to host your lambda code in `$BUCKET`.
+
+### Demo
+If you wish to see the custom resource in a demo, simliar to the above, you can run:
+
+    $ PROFILE=default REGION=eu-west-1 \
+        BUCKET=my-lambda-function-bucket \
+        make demo
+__NOTE:__ You must have run the above `make install` before running the demo.
+
+
 ## Usage
 
 ### Properties

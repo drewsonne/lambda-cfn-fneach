@@ -1,0 +1,105 @@
+{
+	"AWSTemplateFormatVersion": "2010-09-09",
+	"Parameters": {
+	"BucketName": {
+		"Type": "String",
+		"Description": "BucketName"
+	},
+	"AccountIds": {
+		"Type": "CommaDelimitedList",
+		"Description": "List of Account Ids"
+	}
+  },
+  "Resources": {
+	"ResourceList": {
+	  "Type": "Custom::FnEach",
+	  "Properties": {
+		"List": {
+		  "Ref": "AccountIds"
+		},
+		"Pattern": {
+		  "Fn::Join": [
+			"",
+			[
+			  "arn:aws:s3:::",
+			  {
+				"Ref": "BucketName"
+			  },
+			  "/AWSLogs/{FnEachElement}/*"
+			]
+		  ]
+		},
+		"ServiceToken": {
+		  "Fn::Join": [
+			"",
+			[
+			  "arn:aws:lambda:",{"Ref":"AWS::Region"},":",
+			  {
+				"Ref": "AWS::AccountId"
+			  },
+			  ":function:cfn_each"
+			]
+		  ]
+		}
+	  }
+	}
+  },
+  "Outputs": {
+	"Resources0": {
+	  "Description": "Comma seperated list of ARNs",
+	  "Value": {
+		"Fn::Select": [
+		  0,
+		  {
+			"Fn::GetAtt": [
+			  "ResourceList",
+			  "Elements"
+			]
+		  }
+		]
+	  }
+	},
+	"Resources1": {
+	  "Description": "Comma seperated list of ARNs",
+	  "Value": {
+		"Fn::Select": [
+		  1,
+		  {
+			"Fn::GetAtt": [
+			  "ResourceList",
+			  "Elements"
+			]
+		  }
+		]
+	  }
+	},
+	"Resources2": {
+	  "Description": "Comma seperated list of ARNs",
+	  "Value": {
+		"Fn::Select": [
+		  2,
+		  {
+			"Fn::GetAtt": [
+			  "ResourceList",
+			  "Elements"
+			]
+		  }
+		]
+	  }
+	},
+	"Resources3": {
+	  "Description": "Comma seperated list of ARNs",
+	  "Value": {
+		"Fn::Select": [
+		  3,
+		  {
+			"Fn::GetAtt": [
+			  "ResourceList",
+			  "Elements"
+			]
+		  }
+		]
+	  }
+	}
+  }
+}
