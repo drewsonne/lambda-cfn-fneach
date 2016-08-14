@@ -22,7 +22,7 @@ An AWS Cloudformation Lambda backed Custom resource to allow you to iterate an a
 
 ```json
 {"Fn::GetAtt": ["MyEachArray", "Elements"]}
-## is equiavalent to
+# is equiavalent to
 [
     "Here is my element string: first",
     "Here is my element string: second",
@@ -158,6 +158,7 @@ This means that without hard coding the ARN's, or providing a list of ARNs
 the above bucket policy is equivalent to:
 
 ```json
+{
     "PolicyDocument": {
         "Version": "2012-10-17",
         "Statement": [{
@@ -178,4 +179,5 @@ the above bucket policy is equivalent to:
             }
         }
     }
+}
 ```
