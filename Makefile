@@ -11,7 +11,7 @@ build:
 
 	pip install -r requirements.txt -t $(WORKSPACE_DIR)
 
-	cp $(SRC_DIR)/*.py $(WORKSPACE_DIR)
+	cp *.py $(WORKSPACE_DIR)
 	cd $(WORKSPACE_DIR) && zip --quiet --recurse-paths ../$(PRODUCT).zip *
 
 clean:

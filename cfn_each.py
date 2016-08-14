@@ -96,6 +96,7 @@ def _format_string(strings, pattern):
 
 def _build_resource_id(result):
     """
+    Using the results, generate a unique hash
 
     :param result:
     :return:
