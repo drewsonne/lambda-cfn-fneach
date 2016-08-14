@@ -8,11 +8,27 @@ You can build the package to be uploaded to AWS Lambda, by running:
 
     $ make build
 
+The `cfn_each.zip` file can then be uploaded to AWS Lambda as a
+[Deployment Package](http://docs.aws.amazon.com/lambda/latest/dg/lambda-python-how-to-create-deployment-package.html).
 
-## Fn::Each
-Allows a pattern to be applied on an array of strings
+## Usage
 
-### Example
+### Properties
+
+#### `List`
+This is a list of strings to be injected into the pattern in the 
+`{FnEachElement}` placeholder.
+
+#### `Pattern`
+A string containing exactly at least one occurence of `{FnEachElement}`.
+
+### Attributes
+
+#### Elements
+An expanded list of strings, based on `Pattern` and `List` provided in
+the properties
+
+## Example
 
 For example, let's say you wanted to create a bucket policy to allow
 multiple accounts to write their CloudTrail logs to a single bucket.
@@ -37,21 +53,13 @@ account ids, and an string pattern for an S3 ARN.
             "S3AccountArns": {
                 "Type": "Custom::FnEach",
                 "Properties": {
-                    "List": {
-                        "Ref": "AccountIds"
-                    },
+                    "List": { "Ref": "AccountIds" },
                     "Pattern": {
                         "Fn::Join": ["", [
                             "arn:aws:s3:::", { "Ref": "CloudTrailBucketName" }, "/AWSLogs/{FnEachElement}/*"
                         ]]
                     },
-                    "ServiceToken": "arn:aws:lambda:eu-west-1:AccountId:function:CloudFormationFnEach"
-                }
-            },
-            "Bucket": {
-                "Type": "AWS::S3::Bucket",
-                "Properties": {
-                    "BucketName": { "Ref": "CloudTrailBucketName" }
+                    "ServiceToken": "arn:aws:lambda:eu-west-1:012345678901:function:CloudFormationFnEach"
                 }
             },
             "BucketPolicy": {
@@ -60,15 +68,14 @@ account ids, and an string pattern for an S3 ARN.
                     "PolicyDocument": {
                         "Version": "2012-10-17",
                         "Statement": [{
-                            "Sid": "AWSCloudTrailWrite20150319"
                             "Effect": "Allow"
-                            "Principal": {
-                                "Service": "cloudtrail.amazonaws.com"
-                            },
+                            "Action": "s3:PutObject"
                             "Resource": {
                                 "Fn::GetAtt": [ "S3AccountArns", "Elements" ]
                             },
-                            "Action": "s3:PutObject"
+                            "Principal": {
+                                "Service": "cloudtrail.amazonaws.com"
+                            },
                             "Condition": {
                                 "StringEquals": {
                                     "s3:x-amz-acl": "bucket-owner-full-control"
@@ -76,7 +83,14 @@ account ids, and an string pattern for an S3 ARN.
                             }
                         },
                         ...]
-                    }
+                    },
+                    "Bucket": {"Ref": "Bucket"}
+                }
+            },
+            "Bucket": {
+                "Type": "AWS::S3::Bucket",
+                "Properties": {
+                    "BucketName": { "Ref": "CloudTrailBucketName" }
                 }
             }
         }
@@ -88,17 +102,16 @@ the above bucket policy is equivalent to:
     "PolicyDocument": {
         "Version": "2012-10-17",
         "Statement": [{
-            "Sid": "AWSCloudTrailWrite20150319"
             "Effect": "Allow"
-            "Principal": {
-                "Service": "cloudtrail.amazonaws.com"
-            },
+            "Action": "s3:PutObject"
             "Resource": [
                 "arn:aws:s3:::cloudtrail/AWSLogs/012345678901/*",
                 "arn:aws:s3:::cloudtrail/AWSLogs/123456789012/*",
                 "arn:aws:s3:::cloudtrail/AWSLogs/234567890123/*"
             ],
-            "Action": "s3:PutObject"
+            "Principal": {
+                "Service": "cloudtrail.amazonaws.com"
+            },
             "Condition": {
                 "StringEquals": {
                     "s3:x-amz-acl": "bucket-owner-full-control"
