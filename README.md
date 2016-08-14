@@ -1,6 +1,35 @@
 # lambda-cfn-fneach 1.0.1
 An AWS Cloudformation Lambda backed Custom resource to allow you to iterate an array and inject each element into a string pattern
 
+## Quickstart
+
+ - Build the Lambda deployment package - `make build`
+ - Install the Lambda function - `cfn_each.zip`
+ - Use the Lambda function in a cloudformation template
+
+```json
+"MyEachArray": {
+    "Type": "Custom::FnEach",
+    "Properties": {
+        "List": ["first", "second", "third"],
+        "Pattern": "Here is my element string: {FnEachElement}",
+        "ServiceToken": "arn:aws:lambda:eu-west-1:012345678901:function:CloudFormationFnEach"
+    }
+}
+```
+
+ - Reference the custom resource
+
+```json
+{"Fn::GetAtt": ["MyEachArray", "Elements"]}
+## is equiavalent to
+[
+    "Here is my element string: first",
+    "Here is my element string: second",
+    "Here is my element string: third"
+]
+```
+
 ## Installation
 
 ### Building
@@ -62,6 +91,7 @@ If you don't know the number of accounts you have, you can use the
 `Custom:FnEach` resource, to generate a list of strings, based on those
 account ids, and an string pattern for an S3 ARN.
 
+```json
     {
         "Parameters": {
             "AccountIds": {
@@ -94,8 +124,8 @@ account ids, and an string pattern for an S3 ARN.
                     "PolicyDocument": {
                         "Version": "2012-10-17",
                         "Statement": [{
-                            "Effect": "Allow"
-                            "Action": "s3:PutObject"
+                            "Effect": "Allow",
+                            "Action": "s3:PutObject",
                             "Resource": {
                                 "Fn::GetAtt": [ "S3AccountArns", "Elements" ]
                             },
@@ -108,7 +138,8 @@ account ids, and an string pattern for an S3 ARN.
                                 }
                             }
                         },
-                        ...]
+                        ...
+                        ]
                     },
                     "Bucket": {"Ref": "Bucket"}
                 }
@@ -121,15 +152,17 @@ account ids, and an string pattern for an S3 ARN.
             }
         }
     }
+```
 
 This means that without hard coding the ARN's, or providing a list of ARNs
 the above bucket policy is equivalent to:
 
+```json
     "PolicyDocument": {
         "Version": "2012-10-17",
         "Statement": [{
-            "Effect": "Allow"
-            "Action": "s3:PutObject"
+            "Effect": "Allow",
+            "Action": "s3:PutObject",
             "Resource": [
                 "arn:aws:s3:::cloudtrail/AWSLogs/012345678901/*",
                 "arn:aws:s3:::cloudtrail/AWSLogs/123456789012/*",
@@ -145,3 +178,4 @@ the above bucket policy is equivalent to:
             }
         }
     }
+```
