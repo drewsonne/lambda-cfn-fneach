@@ -26,7 +26,7 @@ def create_each(event, context):
         'Reason': 'Formatted List into string',
         'PhysicalResourceId': resource_id,
         'Data': {
-            'StringList': result
+            'Elements': result
         }
     }
 
@@ -65,7 +65,7 @@ def update_each(event, context):
         'Status': 'SUCCESS',
         'PhysicalResourceId': resource_id,
         'Data': {
-            'StringList': result
+            'Elements': result
         }
     }
 
