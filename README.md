@@ -4,7 +4,7 @@ An AWS Cloudformation Lambda backed Custom resource to allow you to iterate an a
 ## Quickstart
 
  - Build the Lambda deployment package - `make build`
- - Install the Lambda function - `cfn_each.zip`
+ - Install the Lambda function - `build/cfn_each.zip`
  - Use the Lambda function in a cloudformation template
 
 ```json
@@ -37,34 +37,45 @@ You can build the package to be uploaded to AWS Lambda, by running:
 
     $ make build
 
-The `cfn_each.zip` file can then be uploaded to AWS Lambda as a
+The `build/cfn_each.zip` file can then be uploaded to AWS Lambda as a
 [Deployment Package](http://docs.aws.amazon.com/lambda/latest/dg/lambda-python-how-to-create-deployment-package.html).
 
 ### Deploying
 
 You can deploy the lambda function using the provided template in 
-`custom_cfneach.json`. The `CfnEachRole` has no policies attached as the
-resources performs only string operations and requires no permissions.
-It is recommended to use the template as a base, rather than deploying
-it as it.
+`custom_cfneach.json`. The `CfnEachRole` has no policies attached as cfn_each
+only performs string operations, therefore it requires no permissions.
+It is recommended to use the template as a example for your own work,
+rather than deploying the unmodified template in this repository.
 
-If you want to quickly deploy the function to try it out, you can run:
+If you want to quickly deploy cfn_each to try it out, you can upload the 
+lambda deployment package to s3 and then create a cloudformation stack
+which will install the lambda function in your account:
 
     $ PROFILE=default REGION=eu-west-1 \
         BUCKET=my-lambda-function-bucket \
         make install
 
-using your profile as set in `~/.aws/credentials` in `$PROFILE`, and the
-bucket you wish to host your lambda code in `$BUCKET`.
+You'll need to provide:
+ - your profile as set in `~/.aws/credentials` in 
+`$PROFILE`
+ - the bucket you wish to host your lambda code in `$BUCKET`, and
+ - the region you wish to deploy the cloudformation stack into.
 
 ### Demo
-If you wish to see the custom resource in a demo, simliar to the above, you can run:
+__NOTE:__ You must have run the above `make install` before running the demo.
+If you wish to see how to use cfn_each in a template, you can deploy
+another cloudformation stack showing the resource in use:
 
     $ PROFILE=default REGION=eu-west-1 \
         BUCKET=my-lambda-function-bucket \
         make demo
-__NOTE:__ You must have run the above `make install` before running the demo.
 
+As above, you'll need to provide:
+ - your profile as set in `~/.aws/credentials` in 
+`$PROFILE`
+ - the bucket you wish to host your lambda code in `$BUCKET`, and
+ - the region you wish to deploy the cloudformation stack into.
 
 ## Usage
 
@@ -74,8 +85,33 @@ __NOTE:__ You must have run the above `make install` before running the demo.
 This is a list of strings to be injected into the pattern in the 
 `{FnEachElement}` placeholder.
 
+__Example__
+
+```json
+"MyEachArray": {
+    "Type": "Custom::FnEach",
+    "Properties": {
+        "List": ["first", "second", "third"],
+        ...
+    }
+}
+```
+
+
 #### `Pattern`
 A string containing exactly at least one occurence of `{FnEachElement}`.
+
+__Example__
+
+```json
+"MyEachArray": {
+    "Type": "Custom::FnEach",
+    "Properties": {
+        "Pattern": "Here is my element string: {FnEachElement}",
+        ...
+    }
+}
+```
 
 ### Attributes
 
@@ -83,13 +119,40 @@ A string containing exactly at least one occurence of `{FnEachElement}`.
 An expanded list of strings, based on `Pattern` and `List` provided in
 the properties
 
+__Example__
+```json
+"BucketPolicy": {
+    "Type": "AWS::S3::BucketPolicy",
+    "Properties": {
+        "PolicyDocument": {
+            "Version": "2012-10-17",
+            "Statement": [{
+                "Resource": {
+                    "Fn::GetAtt": [ "S3AccountArns", "Elements" ]
+                },
+                ...
+            },
+            ...
+            ]
+        }
+    }
+}
+```
+
 ## Example
 
-For example, let's say you wanted to create a bucket policy to allow
-multiple accounts to write their CloudTrail logs to a single bucket.
-If you don't know the number of accounts you have, you can use the 
-`Custom:FnEach` resource, to generate a list of strings, based on those
-account ids, and an string pattern for an S3 ARN.
+Let's say you wanted to deploy CloudTrail into multiple accounts, where
+you have a single S3 bucket aggregating all the logs. As per the
+instructions in [Setting Bucket Policy for Multiple Accounts](http://docs.aws.amazon.com/awscloudtrail/latest/userguide/cloudtrail-set-bucket-policy-for-multiple-accounts.html),
+you would need to specify a seperate resource ARN for each key in the 
+aws bucket for the `s3:PutObject` action.
+
+If you wanted to create your template to be re-usable, without hardcoding
+the ARNs or providing the entire ARNs as a parameter (which is prone to 
+user error), you can use cfn_each to generate the ARNs based on the
+composition of a list of AWS Account IDs (`012345678901`, etc.) and a
+string pattern (`"arn:aws:s3:::my-bucket/AWSLogs/{FnEachElement}/*"`)
+describing the structure of the ARN.
 
 ```json
     {
@@ -154,8 +217,8 @@ account ids, and an string pattern for an S3 ARN.
     }
 ```
 
-This means that without hard coding the ARN's, or providing a list of ARNs
-the above bucket policy is equivalent to:
+If you were to hardcode the ARNs, the equivalent of the above
+DocumentPolicy would be:
 
 ```json
 {
