@@ -147,11 +147,12 @@ instructions in [Setting Bucket Policy for Multiple Accounts](http://docs.aws.am
 you would need to specify a seperate resource ARN for each key in the 
 aws bucket for the `s3:PutObject` action.
 
-If you wanted to create your template to be re-usable, without hardcoding
-the ARNs or providing the entire ARNs as a parameter (which is prone to 
-user error), you can use cfn_each to generate the ARNs based on the
-composition of a list of AWS Account IDs (`012345678901`, etc.) and a
-string pattern (`"arn:aws:s3:::my-bucket/AWSLogs/{FnEachElement}/*"`)
+If you wanted to create your template to be re-usable (and therefore not
+hardcode the ARNs into the template) or did not wish to ingest the ARNs
+as a parameter (which is prone to user error, and has potential for
+security vulnerabilities), you can use cfn_each to generate the ARNs
+based on the composition of a list of AWS Account IDs (`012345678901`,
+etc.) and a string pattern (`"arn:aws:s3:::my-bucket/AWSLogs/{FnEachElement}/*"`)
 describing the structure of the ARN.
 
 ```json
